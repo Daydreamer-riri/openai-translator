@@ -10,7 +10,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-20.04, windows-latest]
+        # platform: [macos-latest, ubuntu-20.04, windows-latest]
+        include:
+          - platform: macos-latest
+            target: universal-apple-darwin
+          - platform: ubuntu-20.04
+          - platform: windows-latest
+            target: aarch64-pc-windows-msvc
+          - platform: windows-latest
+            target: i686-pc-windows-msvc
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -42,20 +50,20 @@ jobs:
       - name: install frontend dependencies
         run: pnpm install --no-frozen-lockfile # change this to npm or pnpm depending on which one you use
 
-      - name: Build Tauri App (MacOS Universal)
+      - name: Build Tauri App
         uses: tauri-apps/tauri-action@dev
-        if: matrix.platform == 'macos-latest'
-        id: tauri-action-mac
+        if: matrix.platform != 'ubuntu-20.04'
+        id: tauri-action
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           releaseId: test-release
-          args: --target universal-apple-darwin
+          args: --target ${{ matrix.target }}
 
-      - name: Build Tauri App
+      - name: Build Tauri App (Linux)
         uses: tauri-apps/tauri-action@dev
-        if: matrix.platform != 'macos-latest'
-        id: tauri-action
+        if: matrix.platform == 'ubuntu-20.04'
+        id: tauri-action-linux
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -66,7 +74,7 @@ jobs:
         with:
           name: tauri-client-app-artifact
           path: |
-            ${{ fromJSON(steps.tauri-action-mac.outputs.artifactPaths)[0] }}
+            ${{ fromJSON(steps.tauri-action-linux.outputs.artifactPaths)[0] }}
             ${{ fromJSON(steps.tauri-action.outputs.artifactPaths)[0] }}
 
 
