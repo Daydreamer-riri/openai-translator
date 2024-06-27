@@ -133,7 +133,7 @@ jobs:
       - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0
         id: tauri-action
-        if: matrix.config.os != 'macos-latest' || matrix.config.arch != 'aarch64' || matrix.config.os != 'windows-latest'
+        if: (matrix.config.os != 'macos-latest' && matrix.config.os != 'windows-latest') || matrix.config.arch != 'aarch64'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
